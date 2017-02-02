@@ -18,13 +18,13 @@ try {
 }
 
 
-$aaa = "%" . date("Y/m/d",strtotime("-1 day")) . "%00%00%";
+$aaa = "%" . date("Y/m/d") . "%00%00%";
 $stmt = $pdo->prepare('SELECT * FROM slstage_aggregater WHERE time_str LIKE :likes ORDER BY time ASC');
 $stmt->bindParam(":likes" , $aaa);
 $stmt->execute();
 $array[0] = $stmt->fetch();
 
-$aaa = "%" . date("Y/m/d",strtotime("-2 day")) . "%00%00%";
+$aaa = "%" . date("Y/m/d",strtotime("-1 day")) . "%00%00%";
 $stmt = $pdo->prepare('SELECT * FROM slstage_aggregater WHERE time_str LIKE :likes ORDER BY time ASC');
 $stmt->bindParam(":likes" , $aaa);
 $stmt->execute();
