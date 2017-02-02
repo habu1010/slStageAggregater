@@ -4,8 +4,7 @@ deresute.meさんのjsonを拝借してユーザーデータを取得する。
 cronでいい感じの感覚で叩くとデータベースに保存される。
 */
 
-require_once ("userSetting.php");
-
+$settings = parse_ini_file("setting.ini");
 
 
 // 最初に時間を求めておく 
@@ -21,19 +20,33 @@ function printLog($str){
 }
 
 // いつもの
-require_once "./../../undefined/DSN.php";
 try {
-    $pdo = new PDO ( 'mysql:host=' . $dsn ['host'] . ';dbname=' . $dsn ['dbname'] . ';charset=utf8', $dsn ['user'], $dsn ['pass'], array (
-    PDO::ATTR_EMULATE_PREPARES => false
-    ) );
+    $pdo = new PDO ( 'sqlite:' . $settings['sqlite3_db_path']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch ( PDOException $e ) {
     exit ( 'connection unsuccess' . $e->getMessage () );
 }
 printLog("PDOロード\n");
 
+$pdo->exec( <<< EOM
+CREATE TABLE IF NOT EXISTS slstage_aggregater(
+    time INTEGER PRIMARY KEY,
+    time_str TEXT,
+    level INTEGER,
+    commu_no INTEGER,
+    album_no INTEGER,
+    fan INTEGER,
+    prp INTEGER
+)
+EOM
+);
+
 // jsonを取得する
-$url = "https://deresute.me/" . $gameid . "/json";
+$url = "https://deresute.me/" . $settings['gameId'] . "/json";
 $json = file_get_contents($url);
+if ($json === FALSE) {
+    exit;
+}
 $json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
 $arr = json_decode($json, true);
 printLog("jsonロード\n");

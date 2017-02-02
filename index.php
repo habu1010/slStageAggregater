@@ -1,12 +1,10 @@
 <?php
-require_once ('userSetting.php');
+$settings = parse_ini_file("setting.ini");
 
 // データベースからデータを取得
-require_once $_SERVER['DOCUMENT_ROOT'] . "/../undefined/DSN.php";
 try {
-    $pdo = new PDO ( 'mysql:host=' . $dsn ['host'] . ';dbname=' . $dsn ['dbname'] . ';charset=utf8', $dsn ['user'], $dsn ['pass'], array (
-    PDO::ATTR_EMULATE_PREPARES => false
-    ) );
+    $pdo = new PDO ( 'sqlite:' . $settings['sqlite3_db_path']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch ( PDOException $e ) {
     exit ( 'connection unsuccess' . $e->getMessage () );
 }
@@ -221,7 +219,7 @@ $array = $stmt->fetchAll();
 <body>
 <header role="banner">
 <h1>デレステプレイしてますけど！</h1>
-<h2 class="grayMini">User : <?php echo $userName . '<a href="https://twitter.com/' . $twitterId . '" target="_blank">@' . $twitterId . "</a> (" . $gameid . ")"?></h2>
+<h2 class="grayMini">User : <?php echo $settings['userName'] . '<a href="https://twitter.com/' . $settings['twitterId'] . '" target="_blank">@' . $settings['twitterId'] . "</a> (" . $settings['gameId'] . ")"?></h2>
 </header>
 <nav>
 <!-- ここにメニューだとか -->  
@@ -229,7 +227,7 @@ $array = $stmt->fetchAll();
 <div role="main">
 <p>デレステをどれ位やっているか、<a href="https://deresute.me/" target="_blank">deresute.me</a>さんのjsonをお借りしてグラフ化しています。</p>
 <p><a href="./">簡易表示(１日毎)</a> / <a href="./?hourly">詳細表示(１時間毎)</a></p>
-<img class="banner" src="https://deresute.me/424570685/medium">
+<?php echo '<img class="banner" src="https://deresute.me/'. $settings['gameId'] .'/medium">'?>
   <div id="chartdiv"></div>
 </div>
 <footer role="contentinfo">
