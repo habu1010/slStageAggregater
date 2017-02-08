@@ -3,12 +3,6 @@
 
 $settings = parse_ini_file("setting.ini");
 
-require __DIR__ . '/vendor/autoload.php';
-use mpyw\Co\Co;
-use mpyw\Co\CURLException;
-use mpyw\Cowitter\Client;
-use mpyw\Cowitter\HttpException;
-
 // データベースからデータを取得
 try {
     $pdo = new PDO ( 'sqlite:' . $settings['sqlite3_db_path']);
@@ -17,19 +11,16 @@ try {
     exit ( 'connection unsuccess' . $e->getMessage () );
 }
 
-
-$aaa = "%" . date("Y/m/d") . "%00%00%";
 $stmt = $pdo->prepare('SELECT * FROM slstage_aggregater WHERE time_str LIKE :likes ORDER BY time ASC');
 $stmt->bindParam(":likes" , $aaa);
+
+$aaa = "%" . date("Y/m/d") . "%00%00%";
 $stmt->execute();
 $array[0] = $stmt->fetch();
 
-$aaa = "%" . date("Y/m/d",strtotime("-1 day")) . "%00%00%";
-$stmt = $pdo->prepare('SELECT * FROM slstage_aggregater WHERE time_str LIKE :likes ORDER BY time ASC');
-$stmt->bindParam(":likes" , $aaa);
+$aaa = "%" . date("Y/m/d", strtotime("-1 day")) . "%00%00%";
 $stmt->execute();
 $array[1] = $stmt->fetch();
-
 
 
 $level = $array[0]['level'];
@@ -46,7 +37,11 @@ $tweetStr = <<< EOF
 詳細： {$settings['detailURL']}
 EOF;
 
-echo "<pre>" . $tweetStr . "</pre>";
+require __DIR__ . '/vendor/autoload.php';
+use mpyw\Co\Co;
+use mpyw\Co\CURLException;
+use mpyw\Cowitter\Client;
+use mpyw\Cowitter\HttpException;
 
 $twitter = parse_ini_file("twitter.ini");
 
