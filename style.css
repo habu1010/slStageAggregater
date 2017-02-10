@@ -24,9 +24,14 @@ a:visited.f { color: #ddd; }
 a:hover.f { color: #ddd; }
 a:active.f { color: #ddd; }
 
-@media screen and (max-width: 520px) {
-   img.banner {
-      width: 100%;
-}
+img.banner {
+    width: 520px;
+    height: 82px;
+    background-color: lightgray;
 }
 
+@media screen and (max-width: 520px) {
+   img.banner {
+       width: 100%;
+   }
+}

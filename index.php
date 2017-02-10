@@ -44,7 +44,7 @@ crossorigin="anonymous">
 <div role="main">
 <p>デレステをどれ位やっているか、<a href="https://deresute.me/" target="_blank">deresute.me</a>さんのjsonをお借りしてグラフ化しています。</p>
 <p><a href="#" id="daily">簡易表示(１日毎)</a> / <a href="#" id="hourly">詳細表示(１時間毎)</a></p>
-<?php echo '<img class="lazy" class="banner" data-original="https://deresute.me/'. $settings['gameId'] .'/medium" width="540" height="82">' ?>
+<?php echo '<img src="img/spin-black.svg" class="lazy banner" data-original="https://deresute.me/'. $settings['gameId'] .'/medium">' ?>
 <div id="chartdiv"></div>
 </div>
 <footer role="contentinfo">
