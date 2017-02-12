@@ -11,7 +11,7 @@ try {
 if (array_key_exists('hourly', $_GET)) {
     $stmt = $pdo->query("SELECT * FROM slstage_aggregater ORDER BY time ASC");
 } else {
-    $stmt = $pdo->query("SELECT * FROM slstage_aggregater WHERE time_str LIKE '%00:__' ORDER BY time ASC");
+    $stmt = $pdo->query("SELECT * FROM slstage_aggregater_daily ORDER BY time ASC");
 }
 $array = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

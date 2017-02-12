@@ -7,9 +7,8 @@ cronでいい感じの感覚で叩くとデータベースに保存される。
 $settings = parse_ini_file("setting.ini");
 
 
-// 最初に時間を求めておく 
+// 最初に時間を求めておく
 $GLOBALS['time'] = time();
-$GLOBALS['time_str'] = date("Y/m/d H:i",$GLOBALS['time']);
 
 function printLog($str){
     // ログ出力用にまとめたやつ
@@ -31,13 +30,14 @@ printLog("PDOロード\n");
 $pdo->exec( <<< EOM
 CREATE TABLE IF NOT EXISTS slstage_aggregater(
     time INTEGER PRIMARY KEY,
-    time_str TEXT,
     level INTEGER,
     commu_no INTEGER,
     album_no INTEGER,
     fan INTEGER,
     prp INTEGER
-)
+);
+CREATE TABLE IF NOT EXISTS daily(time INTEGER PRIMARY KEY);
+CREATE VIEW IF NOT EXISTS slstage_aggregater_daily as SELECT * FROM slstage_aggregater NATURAL INNER JOIN daily;
 EOM
 );
 
@@ -51,10 +51,15 @@ $json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
 $arr = json_decode($json, true);
 printLog("jsonロード\n");
 
+// 日付が変わって最初のデータかどうか調べる
+$stmt = $pdo->query("SELECT date(time, 'unixepoch', 'localtime') FROM daily ORDER BY time DESC LIMIT 1");
+
+$last_dailydata_date = $stmt->fetch(PDO::FETCH_COLUMN);
+$today_date = date('Y-m-d', $GLOBALS['time']);
+
 // 送信する配列 あとで書くと長くなるのでここで。
 $pushArr = array(
 ":uptime" => $GLOBALS['time'],
-":time_str" => $GLOBALS['time_str'],
 ":level" => $arr['level'],
 ":commu" => $arr['commu_no'],
 ":album" => $arr['album_no'],
@@ -63,17 +68,24 @@ $pushArr = array(
 );
 
 // 送信しておしまい 失敗したら次回頑張ろう
-$sql = 'INSERT INTO slstage_aggregater (time ,time_str ,level ,commu_no ,album_no ,fan ,prp) VALUES (:uptime , :time_str , :level , :commu , :album , :fan , :prp)';
-$stmt=$pdo->prepare($sql);
-$res=$stmt->execute($pushArr);
-if ($res) {
-   printLog("insert成功\n");
-}else{
-   printLog("insert失敗\n");
+if ($pdo->beginTransaction()) {
+    try {
+        $stmt = $pdo->prepare('INSERT INTO slstage_aggregater (time, level, commu_no, album_no, fan, prp) VALUES (:uptime, :level, :commu,  :album, :fan, :prp)');
+        $stmt->execute($pushArr);
+        if ($today_date !== $last_dailydata_date) {
+            $stmt = $pdo->prepare('INSERT INTO daily (time) VALUES(:uptime)');
+            $stmt->bindValue(':uptime', $pushArr[":uptime"]);
+            $stmt->execute();
+        }
+        $pdo->commit();
+    } catch (PDOException $e) {
+        $pdo->rollback();
+        exit('There was an error inserting data into the DB: ' . $e->getMessage());
+    }
 }
 
-// 指定時間にツイートする処理
-if (date("H") == 0){
-    echo "０時なので実行";
+// 1日1回ツイートする処理
+if ($today_date !== $last_dailydata_date){
+    echo "日付が変わったので実行";
     include_once('tweet.php');
 }

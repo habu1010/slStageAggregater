@@ -11,18 +11,11 @@ try {
     exit ( 'connection unsuccess' . $e->getMessage () );
 }
 
-$stmt = $pdo->prepare('SELECT * FROM slstage_aggregater WHERE time_str LIKE :likes ORDER BY time ASC');
-$stmt->bindParam(":likes" , $aaa);
+$stmt = $pdo->query('SELECT * FROM slstage_aggregater_daily ORDER BY time DESC LIMIT 2');
+$array = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$aaa = "%" . date("Y/m/d") . "%00%00%";
-$stmt->execute();
-$array[0] = $stmt->fetch();
-
-$aaa = "%" . date("Y/m/d", strtotime("-1 day")) . "%00%00%";
-$stmt->execute();
-$array[1] = $stmt->fetch();
-
-
+$today_date = date('Y/m/d H:i', $array[0]['time']);
+$yeasterday_date = date('Y/m/d H:i', $array[1]['time']);
 $level = $array[0]['level'];
 $level_increment = $array[0]['level'] - $array[1]['level'];
 $fan = number_format($array[0]['fan']);
@@ -30,7 +23,7 @@ $fan_increment = number_format($array[0]['fan'] - $array[1]['fan']);
 
 $tweetStr = <<< EOF
 #デレステプレイしてますけど
-{$array[0]['time_str']} (vs {$array[1]['time_str']} )
+$today_date (vs $yeasterday_date)
 
 レベル： $level (+ $level_increment)
 ファン数： $fan (+ $fan_increment)
