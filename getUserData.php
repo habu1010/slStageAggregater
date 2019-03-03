@@ -19,6 +19,34 @@ function printLog($str)
     ob_flush();
 }
 
+function getUserData($gameId, $timeout = 10, $retry_count = 3)
+{
+    $url = "https://deresute.me/{$gameId}/json";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+    do {
+        $retry_count --;
+        $result = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $success = ($result !== false) && ($info['http_code'] === 200);
+        if ($result === false) {
+            echo curl_error($ch) . "\n";
+        }
+    } while (!$success && $retry_count >= 0);
+
+    curl_close($ch);
+
+    if ($success) {
+        $json_result = mb_convert_encoding($result, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
+        return json_decode($json_result, true);
+    } else {
+        return false;
+    }
+}
+
 // いつもの
 try {
     $pdo = new PDO('sqlite:' . $settings['sqlite3_db_path']);
@@ -43,15 +71,12 @@ CREATE VIEW IF NOT EXISTS slstage_aggregater_daily as SELECT * FROM slstage_aggr
 EOM
 );
 
-// jsonを取得する
-$url = "https://deresute.me/" . $settings['gameId'] . "/json";
-$json = file_get_contents($url);
-if ($json === false) {
-    exit;
-}
-$json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
-$arr = json_decode($json, true);
+// データをjsonで取得する
+$userData = getUserData($settings['gameId']);
 printLog("jsonロード\n");
+if ($userData === false) {
+    exit("Failed to get user data.\n");
+}
 
 // 日付が変わって最初のデータかどうか調べる
 $stmt = $pdo->query("SELECT date(time, 'unixepoch', 'localtime') FROM daily ORDER BY time DESC LIMIT 1");
@@ -62,11 +87,11 @@ $today_date = date('Y-m-d', $GLOBALS['time']);
 // 送信する配列 あとで書くと長くなるのでここで。
 $pushArr = array(
 ":uptime" => $GLOBALS['time'],
-":level" => $arr['level'],
-":commu" => $arr['commu_no'],
-":album" => $arr['album_no'],
-":fan" => $arr['fan'],
-":prp" => $arr['prp']
+":level" => $userData['level'],
+":commu" => $userData['commu_no'],
+":album" => $userData['album_no'],
+":fan" => $userData['fan'],
+":prp" => $userData['prp']
 );
 
 // 送信しておしまい 失敗したら次回頑張ろう
