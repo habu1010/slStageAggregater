@@ -5,10 +5,10 @@ $settings = parse_ini_file("setting.ini");
 
 // データベースからデータを取得
 try {
-    $pdo = new PDO ( 'sqlite:' . $settings['sqlite3_db_path']);
+    $pdo = new PDO('sqlite:' . $settings['sqlite3_db_path']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch ( PDOException $e ) {
-    exit ( 'connection unsuccess' . $e->getMessage () );
+} catch (PDOException $e) {
+    exit('connection unsuccess' . $e->getMessage());
 }
 
 $stmt = $pdo->query('SELECT * FROM slstage_aggregater_daily ORDER BY time DESC LIMIT 2');
@@ -55,7 +55,8 @@ $client = new Client(
     [$twitter['consumer_key'],
      $twitter['consumer_secret'],
      $twitter['access_token'],
-     $twitter['access_token_secret']]);
+     $twitter['access_token_secret']]
+);
 //$client = $client->withOptions([CURLOPT_CAINFO => __DIR__ . '/vendor/cacert.pem']);
 
 $client->post('statuses/update', ['status' => $tweetStr]);

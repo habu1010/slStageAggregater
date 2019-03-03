@@ -10,7 +10,8 @@ $settings = parse_ini_file("setting.ini");
 // 最初に時間を求めておく
 $GLOBALS['time'] = time();
 
-function printLog($str){
+function printLog($str)
+{
     // ログ出力用にまとめたやつ
     $t = sprintf('%.3f', microtime(true) - $GLOBALS['time']);
     echo "(" . $t . "ms) " . $str;
@@ -20,14 +21,15 @@ function printLog($str){
 
 // いつもの
 try {
-    $pdo = new PDO ( 'sqlite:' . $settings['sqlite3_db_path']);
+    $pdo = new PDO('sqlite:' . $settings['sqlite3_db_path']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch ( PDOException $e ) {
-    exit ( 'connection unsuccess' . $e->getMessage () );
+} catch (PDOException $e) {
+    exit('connection unsuccess' . $e->getMessage());
 }
 printLog("PDOロード\n");
 
-$pdo->exec( <<< EOM
+$pdo->exec(
+    <<< EOM
 CREATE TABLE IF NOT EXISTS slstage_aggregater(
     time INTEGER PRIMARY KEY,
     level INTEGER,
@@ -44,7 +46,7 @@ EOM
 // jsonを取得する
 $url = "https://deresute.me/" . $settings['gameId'] . "/json";
 $json = file_get_contents($url);
-if ($json === FALSE) {
+if ($json === false) {
     exit;
 }
 $json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
@@ -85,7 +87,7 @@ if ($pdo->beginTransaction()) {
 }
 
 // 1日1回ツイートする処理
-if ($today_date !== $last_dailydata_date){
+if ($today_date !== $last_dailydata_date) {
     echo "日付が変わったので実行";
     include_once('tweet.php');
 }
